@@ -27,7 +27,23 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 {
 	BOOL Active;
 	DWORD Tid;
+#undef Y
+	
+	int  b = 2;
+	int const a = 3;
 
+	int &const c = b;
+	c = c + 1;
+	c = a;
+
+	int const *const e = &b;
+	
+
+	int x = 1;
+	auto lambda = [](int x)-> void {
+		MB((char*) x);
+	};
+	
 	SM.Push(Func1);
 	SM.Push(Func2);
 	SM.Push(Func3);
@@ -37,8 +53,8 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 	PM.Add(Func3);
 	//PM.Process();
 	//PM.Process();
-	while (SM.Process() == TRUE);
-	while (SM.Process() == TRUE);
+	//while (SM.Process() == TRUE);
+	//while (SM.Process() == TRUE);
 
 	system("pause");
 	return 0;

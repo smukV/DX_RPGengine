@@ -24,12 +24,18 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cDataPackage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cProcessManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cStateManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cDataPackage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
