@@ -1,6 +1,12 @@
 #include <windows.h>
 #include <stdio.h>
+#include <iostream>
 #include <stdarg.h>
+#include <d3d9.h>
+#include <d3dx9.h>
+//#include <d3d.h>
+
+#define WINDOWED
 
 //Main app instances
 HINSTANCE g_hInst; //Global inst handle
@@ -21,7 +27,7 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 void AppError(BOOL Fatal, char *Text, ...);
 
 //Message procedure
-long FAR PASCAL WindowProc(HWND hWnd, UINT uMsg,
+LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT uMsg,
 	WPARAM wParam, LPARAM lParam);
 
 //Func to register and unregister windows classes
@@ -52,6 +58,59 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 	if ((g_hWnd = CreateMainWindow(hInst)) == NULL)
 		return FALSE;
 
+	//Obtaining the Direct3D interfaace
+	IDirect3D9* g_pD3D;
+	if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL) {
+
+		std::cout << "Failed init IDirect3D9";
+		return 1;
+	}
+
+	//Selecting a Disaplay Mode
+	D3DDISPLAYMODE d3ddm;
+
+#ifdef WINDOWED
+	if (FAILED(g_pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &d3ddm))) {
+		std::cout << "Failed init D3DDISPLAYMODE";
+		return 1;
+	}
+#else
+	d3ddm.Width = 640;
+	d3ddm.Height = 480;
+	d3ddm.RefreshRate = 0;
+	d3ddm.Format = D3DFMT_R5G6B5;
+#endif
+	
+	//Setting the Presentation Method
+	D3DPRESENT_PARAMETERS d3dpp;
+	ZeroMemory(&d3dpp, sizeof(D3DPRESENT_PARAMETERS));
+
+#ifdef WINDOWED
+	d3dpp.Windowed = TRUE;
+	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	d3dpp.BackBufferFormat = d3ddm.Format;
+#else
+	d3dpp.Windowed = FALSE;
+	d3dpp.SwapEffect = D3DSWAPEFFECT_FLIP;
+	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
+	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+	d3dpp.BackBufferFormat = d3ddm.Format;
+#endif
+
+	d3dpp.BackBufferWidth = WNDWIDTH;
+	d3dpp.BackBufferHeight = WNDHEIGHT;
+
+	//Creating the Device Interface and Initializing the Display
+	IDirect3DDevice9 *g_pD3DDevice;
+	if (FAILED(g_pD3D->CreateDevice(D3DADAPTER_DEFAULT,
+		D3DDEVTYPE_HAL, g_hWnd,
+		D3DCREATE_SOFTWARE_VERTEXPROCESSING, 
+		&d3dpp, &g_pD3DDevice))) {
+
+		return 1;
+	}
+
+	//Main Loop
 	if (DoInit() == TRUE) {
 		ZeroMemory(&Msg, sizeof(MSG));
 		while (Msg.message != WM_QUIT) {
@@ -79,7 +138,7 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 
 BOOL RegisterWindowClasses(HINSTANCE hInst)
 {
-	WNDCLASSEX wcex;
+	WNDCLASSEX wcex {};
 
 	wcex.cbSize = sizeof(wcex);
 	wcex.style = CS_CLASSDC;
@@ -143,7 +202,7 @@ void AppError(BOOL Fatal, char *Text, ...)
 		PostQuitMessage(0);
 }
 
-long FAR PASCAL WindowProc(HWND hWnd, UINT uMsg,
+LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT uMsg,
 	WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg) {
