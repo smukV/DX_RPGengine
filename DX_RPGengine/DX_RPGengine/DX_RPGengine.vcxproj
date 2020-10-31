@@ -22,7 +22,7 @@
     <ClCompile Include="cDataPackage.cpp" />
     <ClCompile Include="cProcessManager.cpp" />
     <ClCompile Include="cStateManager.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cDataPackage.h" />
