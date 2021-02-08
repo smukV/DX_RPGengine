@@ -13,8 +13,8 @@ HINSTANCE g_hInst; //Global inst handle
 HWND g_hWnd;
 
 //App window dimensions, type, class and window name
-#define WNDWIDTH 640
-#define WNDHEIGHT 400
+#define WNDWIDTH 1280
+#define WNDHEIGHT 720
 #define WNDTYPE WS_OVERLAPPEDWINDOW
 const char g_szClass[] = "FrameClass";
 const char g_szCaption[] = "FrameCaption";
@@ -110,6 +110,73 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 		return 1;
 	}
 
+
+	//Creating vertex Buffer
+	typedef struct {
+		FLOAT x, y, z;
+		D3DCOLOR diffuse;
+	} sVertex;
+#define VertexFVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
+
+	IDirect3DVertexBuffer9 *pD3DVB = NULL;
+
+	if (FAILED(g_pD3DDevice->CreateVertexBuffer(
+		sizeof(sVertex) * 4, 0, VertexFVF, D3DPOOL_MANAGED, &pD3DVB, NULL))) {
+
+	}
+
+	sVertex Verts[4] = {
+		{ -100.0f, 100.0f, 100.0f, D3DCOLOR_RGBA(255, 255, 255, 255)	},
+		{ 100.0f,  100.0f, 100.0f, D3DCOLOR_RGBA(255, 0,		0, 255)	},
+		{ 100.0f, -100.0f, 100.0f, D3DCOLOR_RGBA(0,	255,	0, 255)	},
+		{-100.0f, -100.0f, -100.0f, D3DCOLOR_RGBA(0,	0,	255,	255)}
+	};
+
+	BYTE *PtrVBM;
+	if (SUCCEEDED(pD3DVB->Lock(0, 0, (void**)&PtrVBM, 0))) {
+		memcpy(PtrVBM, Verts, sizeof(Verts));
+		pD3DVB->Unlock();
+	}
+
+	//Setting Vertex Stream
+	if (FAILED(g_pD3DDevice->SetStreamSource(0, pD3DVB, 0, sizeof(sVertex)))) {
+	}
+
+	//Setting Vertex Shader
+	if (FAILED(g_pD3DDevice->SetFVF(VertexFVF))) {
+	}
+	
+		//Projection Matrix
+		D3DXMATRIX matProj;
+		D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 1000.0f);
+		if (FAILED(g_pD3DDevice->SetTransform(D3DTS_PROJECTION, &matProj))) {
+			std::cout << "Haven't set transform" << std::endl;
+		}
+
+		//Setting Material
+		D3DMATERIAL9 d3dm;
+		ZeroMemory(&d3dm, sizeof(D3DMATERIAL9));
+
+		d3dm.Diffuse.r = d3dm.Ambient.r = 0.0f;
+		d3dm.Diffuse.g = d3dm.Ambient.g = 1.0f;
+		d3dm.Diffuse.b = d3dm.Ambient.b = 1.0f;
+		d3dm.Diffuse.a = d3dm.Ambient.a = 1.0f;
+
+		g_pD3DDevice->SetMaterial(&d3dm);
+
+	if (FAILED(g_pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 255, 192, 255), 1.0f, 0))) {
+	}
+
+	if (SUCCEEDED(g_pD3DDevice->BeginScene())) {
+		if (FAILED(g_pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1))) {
+		}
+
+		g_pD3DDevice->EndScene();
+	}
+
+	if (FAILED(g_pD3DDevice->Present(NULL, NULL, NULL, NULL))) {
+	}
+	
 	//Main Loop
 	if (DoInit() == TRUE) {
 		ZeroMemory(&Msg, sizeof(MSG));
@@ -119,6 +186,7 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev,
 				DispatchMessage(&Msg);
 			}
 			else {
+
 				if (DoPreFrame() == FALSE)
 					break;
 				if (DoFrame() == FALSE)
@@ -260,6 +328,7 @@ BOOL DoFrame()
 {
 	// Perform per-frame processing, such as rendering.
 	// Return TRUE on success, FALSE otherwise.
+
 	return TRUE;
 }
 
